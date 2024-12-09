@@ -78,10 +78,9 @@ This project is a web-based appointment booking system designed to solve the cha
    - Update the status of appointments as needed.
 
 ## Contributing
-Contributions are welcome! Please open an issue or submit a pull request to suggest improvements or report bugs.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+
 
 ## Contact
 For any questions or feedback, please contact [your email].
