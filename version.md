@@ -48,32 +48,7 @@
   - Created a comprehensive `README.md` file to document the project.
   - Included sections for introduction, features, technologies used, directory structure, installation instructions, usage guide, contributing guidelines, license information, contact details, and acknowledgments.
 
-### Cost Estimation
 
-1. **User Notification**:
-   - **Email Notification**:
-     - **Development Time**: 2 hours
-     - **Cost**: $100 (assuming $50/hour)
-     - **Email Service**: If using a third-party email service (e.g., SendGrid, Mailgun), the cost can vary. For example, SendGrid offers a free tier with 100 emails/day, and paid plans start at $9.95/month for 40,000 emails/month.
-
-2. **Admin Review**:
-   - **Development Time**: 3 hours
-   - **Cost**: $150 (assuming $50/hour)
-   - **Database Changes**: Minimal, as it involves updating the status in the existing database. No additional costs.
-
-3. **README.md**:
-   - **Development Time**: 1 hour
-   - **Cost**: $50 (assuming $50/hour)
-
-4. **Version.md**:
-   - **Development Time**: 1 hour
-   - **Cost**: $50 (assuming $50/hour)
-
-### Total Estimated Cost
-
-- **Development Time**: 7 hours
-- **Total Cost**: $350
-- **Email Service**: $0 (if using free tier) or $9.95/month (if using paid tier)
 
 ### Future Enhancements
 
