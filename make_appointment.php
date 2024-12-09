@@ -24,21 +24,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         echo "<script>alert('Please fill in all required fields');</script>";
     } else {
         // Check doctor availability
-        $stmt = $conn->prepare("SELECT * FROM doctor_availability WHERE doctor_id = ? AND available_date = ? AND available_time = ?");
-        $stmt->bind_param("is", $doctor_id, date('Y-m-d', strtotime($appointment_date)), date('H:i:s', strtotime($appointment_date)));
+$stmt = $conn->prepare("SELECT * FROM doctor_availability WHERE doctor_id = ? AND available_date = ? AND available_time = ?");
+$available_date = date('Y-m-d', strtotime($appointment_date));
+$available_time = date('H:i:s', strtotime($appointment_date));
+$stmt->bind_param("iss", $doctor_id, $available_date, $available_time);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
             // Doctor is available, proceed to book the appointment
-            $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
-            $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_date);
+$stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
+$appointment_date = date('Y-m-d H:i:s', strtotime($appointment_date));
+$stmt->bind_param("iis", $user_id, $doctor_id, $appointment_date);
 
-            if ($stmt->execute()) {
-                echo "<script>alert('Appointment booked successfully!');</script>";
-            } else {
-                echo "<script>alert('Error: " . $stmt->error . "');</script>";
-            }
+if ($stmt->execute()) {
+    // Send email notification to the user
+    $to = "user@example.com"; // Replace with the user's email address
+    $subject = "Appointment Confirmation";
+    $message = "Your appointment has been successfully booked. Doctor: " . $doctor_id . ", Date: " . $appointment_date;
+    $headers = "From: admin@example.com";
+
+    mail($to, $subject, $message, $headers);
+
+    echo "<script>alert('Appointment booked successfully!');</script>";
+} else {
+    echo "<script>alert('Error: " . $stmt->error . "');</script>";
+}
         } else {
             echo "<script>alert('Doctor is not available at the selected time. Please choose a different time.');</script>";
         }
