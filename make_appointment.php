@@ -2,55 +2,49 @@
 session_start();
 include 'db.php'; // Include database connection
 
-// Check if doctor ID is provided
-if (!isset($_GET['doctor_id'])) {
-    header("Location: dashboard.php"); // Redirect if no doctor ID is provided
-    exit;
+// Function to redirect to login page
+function redirectToLogin() {
+    header("Location: login.php");
+    exit; // Stop further execution
 }
 
-$doctor_id = $_GET['doctor_id'];
-
-// Fetch doctor details for display
-$stmt = $conn->prepare("SELECT name FROM doctors WHERE id = ?");
-$stmt->bind_param("i", $doctor_id);
-$stmt->execute();
-$stmt->bind_result($doctor_name);
-$stmt->fetch();
-$stmt->close();
-
-// Check if doctor exists
-if (!$doctor_name) {
-    header("Location: dashboard.php"); // Redirect if doctor not found
-    exit;
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    redirectToLogin();
 }
 
-// Define hardcoded time slots for each doctor
-$time_slots = [
-    1 => ['08:00:00', '09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00'],
-    2 => ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00', '15:00:00'],
-    3 => ['09:30:00', '10:30:00', '11:30:00', '12:30:00', '13:30:00'],
-    4 => ['08:00:00', '09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00'], // Dr. Farai Mavhunga
-    5 => ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00', '15:00:00'], // Dr. Rudo Mupfumi
-    6 => ['08:30:00', '09:30:00', '10:30:00', '11:30:00', '12:30:00'], // Add more doctors as needed
-    // Add more doctors and their respective time slots as needed
-];
+// Handle form submission for appointment booking
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
+    $user_id = $_SESSION['user_id']; // Get user ID from session
+    $doctor_id = htmlspecialchars(trim($_POST['doctor_id'])); // Assuming you have a doctor ID
+    $appointment_date = htmlspecialchars(trim($_POST['date']));
 
-// Handle form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $appointment_date = $_POST['appointment_date'];
-    $appointment_time = $_POST['time_slots'];
+    // Validate the appointment details
+    if (empty($doctor_id) || empty($appointment_date)) {
+        echo "<script>alert('Please fill in all required fields');</script>";
+    } else {
+        // Check doctor availability
+        $stmt = $conn->prepare("SELECT * FROM doctor_availability WHERE doctor_id = ? AND available_date = ? AND available_time = ?");
+        $stmt->bind_param("is", $doctor_id, date('Y-m-d', strtotime($appointment_date)), date('H:i:s', strtotime($appointment_date)));
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    // Save the appointment in the database
-    $user_id = $_SESSION['user_id']; // Get the logged-in user's ID
-    $appointment_datetime = $appointment_date . ' ' . $appointment_time; // Create a variable for the concatenated date and time
-    $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
-    $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_datetime);
-    $stmt->execute();
-    $stmt->close();
+        if ($result->num_rows > 0) {
+            // Doctor is available, proceed to book the appointment
+            $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
+            $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_date);
 
-    // Redirect to dashboard or confirmation page
-    header("Location: dashboard.php?appointment_success=1");
-    exit;
+            if ($stmt->execute()) {
+                echo "<script>alert('Appointment booked successfully!');</script>";
+            } else {
+                echo "<script>alert('Error: " . $stmt->error . "');</script>";
+            }
+        } else {
+            echo "<script>alert('Doctor is not available at the selected time. Please choose a different time.');</script>";
+        }
+
+        $stmt->close();
+    }
 }
 ?>
 
@@ -60,63 +54,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Book Appointment with <?= htmlspecialchars($doctor_name) ?></title>
+    <title>Make Appointment</title>
 </head>
 <body>
-    <header>
-        <h1>Book Appointment with <?= htmlspecialchars($doctor_name) ?></h1>
-        <a href="logout.php">Logout</a>
-    </header>
+<header>
+    <h1>HealthCare</h1>
+    <nav>
+        <a href="index.php">Home</a>
+        <a href="services.php">Services</a>
+        <a href="about.php">About</a>
+        <a href="contact.php">Contact</a>
+        <a href="make_appointment.php">Make Appointment</a>
+        <a href="login.php">Login</a>
+        <a href="doctor_login.php">Doctor Login</a>
+    </nav>
+</header>
 
-    <main>
-        <form method="POST" action="">
-            <label for="appointment_date">Select Date:</label>
-            <input type="date" id="appointment_date" name="appointment_date" required>
+<main>
+    <section class="contact" id="contact">
+        <h1 class="heading">Make an Appointment</h1>
+        <div class="contact-container">
+            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" class="contact-form">
+                <div class="form-group">
+                    <label for="doctor_id">Select Doctor</label>
+                    <select id="doctor_id" name="doctor_id" class="box" required>
+                        <?php
+                        // Fetch doctors from the database
+                        $stmt = $conn->prepare("SELECT id, name FROM doctors");
+                        $stmt->execute();
+                        $result = $stmt->get_result();
 
-            <label for="time_slots">Select Time:</label>
-            <select id="time_slots" name="time_slots" required>
-                <option value="">Select a time</option>
-                <?php
-                // Assuming $doctor_id is set and $time_slots is defined
-                if (isset($time_slots[$doctor_id])) {
-                    foreach ($time_slots[$doctor_id] as $time) {
-                        echo "<option value=\"$time\">$time</option>";
-                    }
-                } else {
-                    echo "<option value=\"\">No available time slots</option>";
-                }
-                ?>
-            </select>
+                        while ($row = $result->fetch_assoc()) {
+                            echo "<option value='" . $row['id'] . "'>" . $row['name'] . "</option>";
+                        }
 
-            <button type="submit" class="book-btn">Book Appointment</button>
-        </form>
-    </main>
+                        $stmt->close();
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Appointment Date & Time</label>
+                    <input type="datetime-local" id="date" name="date" class="box" required>
+                </div>
+                <input type="submit" value="Make Appointment" name="submit" class="link-btn">
+            </form>
+        </div>
+    </section>
+</main>
 
-    <footer>
-        <p>&copy; 2024 Healthcare System. All rights reserved.</p>
-    </footer>
-
-    <script>
-        document.getElementById('appointment_date').addEventListener('change', function() {
-            const date = this.value;
-            const doctorId = <?= json_encode($doctor_id) ?>; // Pass doctor ID to JavaScript
-
-            // Fetch available time slots for the selected date
-            fetch(`get_available_times.php?doctor_id=${doctorId}&date=${date}`)
-                .then(response => response.json())
-                .then(data => {
-                    const timeSelect = document.getElementById('time_slots');
-                    timeSelect.innerHTML = '<option value="">Select a time</option>'; // Clear previous options
-
-                    data.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot;
-                        option.textContent = slot;
-                        timeSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching time slots:', error));
-        });
-    </script>
+<footer>
+    <p>&copy; 2024 Healthcare System. All rights reserved.</p>
+</footer>
 </body>
-</html> 
+</html>
