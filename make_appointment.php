@@ -18,21 +18,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     $user_id = $_SESSION['user_id']; // Get user ID from session
     $doctor_id = htmlspecialchars(trim($_POST['doctor_id'])); // Assuming you have a doctor ID
     $appointment_date = htmlspecialchars(trim($_POST['date']));
+    $appointment_time = htmlspecialchars(trim($_POST['time']));
 
     // Validate the appointment details
-    if (empty($doctor_id) || empty($appointment_date)) {
+    if (empty($doctor_id) || empty($appointment_date) || empty($appointment_time)) {
         echo "<script>alert('Please fill in all required fields');</script>";
     } else {
         // Check doctor availability
         $stmt = $conn->prepare("SELECT * FROM doctor_availability WHERE doctor_id = ? AND available_date = ? AND available_time = ?");
-        $stmt->bind_param("is", $doctor_id, date('Y-m-d', strtotime($appointment_date)), date('H:i:s', strtotime($appointment_date)));
+        $stmt->bind_param("iss", $doctor_id, date('Y-m-d', strtotime($appointment_date)), $appointment_time);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
             // Doctor is available, proceed to book the appointment
-            $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
-            $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_date);
+            $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date, appointment_time) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iiss", $user_id, $doctor_id, $appointment_date, $appointment_time);
 
             if ($stmt->execute()) {
                 echo "<script>alert('Appointment booked successfully!');</script>";
@@ -93,8 +94,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="date">Appointment Date & Time</label>
-                    <input type="datetime-local" id="date" name="date" class="box" required>
+                    <label for="date">Appointment Date</label>
+                    <input type="date" id="date" name="date" class="box" required>
+                </div>
+                <div class="form-group">
+                    <label for="time">Appointment Time</label>
+                    <input type="time" id="time" name="time" class="box" required>
                 </div>
                 <input type="submit" value="Make Appointment" name="submit" class="link-btn">
             </form>
@@ -102,8 +107,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     </section>
 </main>
 
-<footer>
-    <p>&copy; 2024 Healthcare System. All rights reserved.</p>
-</footer>
-</body>
-</html>

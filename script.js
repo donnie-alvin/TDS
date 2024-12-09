@@ -6,7 +6,6 @@ menuBtn.addEventListener('click', () => {
     nav.classList.toggle('active');
 });
 
-
 const navLinks = document.querySelectorAll('nav ul li a');
 
 navLinks.forEach(link => {
@@ -22,4 +21,34 @@ navLinks.forEach(link => {
             block: 'start' 
         });
     });
+});
+
+// JavaScript for form validation and user interaction
+const bookingForm = document.querySelector('.contact-form');
+const doctorSelect = document.getElementById('doctor');
+const dateInput = document.getElementById('date');
+const timeInput = document.getElementById('time');
+const submitBtn = document.querySelector('.contact-form .link-btn');
+
+bookingForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    // Validate form inputs
+    if (!doctorSelect.value) {
+        alert('Please select a doctor.');
+        return;
+    }
+
+    if (!dateInput.value) {
+        alert('Please select a date.');
+        return;
+    }
+
+    if (!timeInput.value) {
+        alert('Please select a time.');
+        return;
+    }
+
+    // Submit the form
+    bookingForm.submit();
 });
