@@ -39,7 +39,7 @@ $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_date);
 
 if ($stmt->execute()) {
     // Send email notification to the user
-    $to = "user@example.com"; // Replace with the user's email address
+$to = htmlspecialchars(trim($_POST['email'])); // Use the user's email address from the form
     $subject = "Appointment Confirmation";
     $message = "Your appointment has been successfully booked. Doctor: " . $doctor_id . ", Date: " . $appointment_date;
     $headers = "From: admin@example.com";
