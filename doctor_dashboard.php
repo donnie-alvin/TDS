@@ -20,38 +20,19 @@ $stmt->close();
 
 // Fetch appointments for the doctor
 $appointments = [];
-$stmt = $conn->prepare("SELECT a.id, a.appointment_date, u.name AS user_name, u.email, a.status FROM appointments a JOIN users u ON a.user_id = u.id WHERE a.doctor_id = ?");
+$stmt = $conn->prepare("SELECT a.id, a.appointment_date, u.name AS user_name, u.email FROM appointments a JOIN users u ON a.user_id = u.id WHERE a.doctor_id = ?");
 $stmt->bind_param("i", $doctor_id);
 $stmt->execute();
-$stmt->bind_result($appointment_id, $appointment_date, $user_name, $user_email, $status);
+$stmt->bind_result($appointment_id, $appointment_date, $user_name, $user_email);
 while ($stmt->fetch()) {
     $appointments[] = [
         'id' => $appointment_id,
         'date' => $appointment_date,
         'user_name' => $user_name,
-        'user_email' => $user_email,
-        'status' => $status
+        'user_email' => $user_email
     ];
 }
 $stmt->close();
-
-// Handle form submission for appointment review
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['appointment_id'])) {
-    $appointment_id = htmlspecialchars(trim($_POST['appointment_id']));
-    $status = htmlspecialchars(trim($_POST['status']));
-
-    // Update the appointment status
-    $stmt = $conn->prepare("UPDATE appointments SET status = ? WHERE id = ?");
-    $stmt->bind_param("si", $status, $appointment_id);
-
-    if ($stmt->execute()) {
-        echo "<script>alert('Appointment status updated successfully!');</script>";
-    } else {
-        echo "<script>alert('Error: " . $stmt->error . "');</script>";
-    }
-
-    $stmt->close();
-}
 ?>
 
 <!DOCTYPE html>

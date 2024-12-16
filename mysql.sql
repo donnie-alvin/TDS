@@ -1,4 +1,3 @@
-DROP DATABASE IF EXISTS healthcare;
 CREATE DATABASE healthcare;
 
 

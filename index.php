@@ -44,9 +44,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     <h1>HealthCare</h1>
     <nav>
         <a href="index.php">Home</a>
-        <a href="#services">Services</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
+        <a href="services.php">Services</a>
+        <a href="about.php">About</a>
+        <a href="contact.php">Contact</a>
         <a href="make_appointment.php">Make Appointment</a>
     
         <a href="login.php">Login</a>
@@ -60,8 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         <div class="hero-content">
             <h1>Find a Doctor And Book An Appointment</h1>
             <p>We are a team of 50+ Expert Doctors with 24/7 Service, 2000+ beds, Home appointments, and Video Consultation.</p>
-<a href="make_appointment.php" class="MakeAppointment">Make Appointment</a>
-<a href="video.php" class="play-video">Play Video</a>
+            <a href="#contact" class="MakeAppointment">Make Appointment</a>
+            <a href="#video" class="play-video">Play Video</a>
             <li><a href="login.php" class="btn">Login</a></li>;
         </div>
     </section>
@@ -155,38 +155,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     </section>
 </main>
 
-<footer>
-    <p>&copy; 2024 Healthcare System. All rights reserved.</p>
-</footer>
-<button id="back-to-top" title="Back to Top">↑</button>
-<script>
-document.addEventListener('scroll', function() {
-    var backToTopButton = document.getElementById('back-to-top');
-    if (window.scrollY > 300) {
-        backToTopButton.style.display = 'block';
-    } else {
-        backToTopButton.style.display = 'none';
-    }
-});
-
-document.getElementById('back-to-top').addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-</script>
-<script>
-document.addEventListener('scroll', function() {
-    var backToTopButton = document.getElementById('back-to-top');
-    if (window.scrollY > 300) {
-        backToTopButton.style.display = 'block';
-    } else {
-        backToTopButton.style.display = 'none';
-    }
-});
-
-document.getElementById('back-to-top').addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-</script>
+    <footer>
+        <p>&copy; 2024 Healthcare System. All rights reserved.</p>
+    </footer>
 </body>
 </html>
 
