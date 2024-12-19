@@ -32,25 +32,37 @@ $time_slots = [
     4 => ['08:00:00', '09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00'], // Dr. Farai Mavhunga
     5 => ['09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00', '15:00:00'], // Dr. Rudo Mupfumi
     6 => ['08:30:00', '09:30:00', '10:30:00', '11:30:00', '12:30:00'], // Add more doctors as needed
-    // Add more doctors and their respective time slots as needed
 ];
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $appointment_date = $_POST['appointment_date'];
     $appointment_time = $_POST['time_slots'];
-
-    // Save the appointment in the database
-    $user_id = $_SESSION['user_id']; // Get the logged-in user's ID
     $appointment_datetime = $appointment_date . ' ' . $appointment_time; // Create a variable for the concatenated date and time
-    $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
-    $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_datetime);
+
+    // Check if the selected time slot is available
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND appointment_date = ?");
+    $stmt->bind_param("is", $doctor_id, $appointment_datetime);
     $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
     $stmt->close();
 
-    // Redirect to dashboard or confirmation page
-    header("Location: dashboard.php?appointment_success=1");
-    exit;
+    if ($count > 0) {
+        // Slot is already booked
+        echo "<script>alert('The selected time slot is already booked. Please choose another time.');</script>";
+    } else {
+        // Save the appointment in the database
+        $user_id = $_SESSION['user_id']; // Get the logged-in user's ID
+        $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
+        $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_datetime);
+        $stmt->execute();
+        $stmt->close();
+
+        // Redirect to dashboard or confirmation page
+        header("Location: dashboard.php?appointment_success=1");
+        exit;
+    }
 }
 ?>
 
@@ -119,4 +131,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         });
     </script>
 </body>
-</html> 
+</html>

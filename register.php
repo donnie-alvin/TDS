@@ -6,7 +6,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = htmlspecialchars(trim($_POST['email']));
     $password = password_hash(trim($_POST['password']), PASSWORD_DEFAULT); // Hash the password
 
-    // Insert user into the database
+    // Check if the email already exists
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($count > 0) {
+        echo "<script>alert('Error: Email already in use. Please choose another email.');</script>";
+    } else {
+        // Insert user into the database
     $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $name, $email, $password);
 
