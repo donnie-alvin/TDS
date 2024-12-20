@@ -1,8 +1,11 @@
 <?php
 session_start();
 include 'db.php'; // Include database connection
+include 'send_email.php';
+require 'vendor/autoload.php'; // Include PHPMailer autoload
 
-session_start(); // Start the session
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -66,14 +69,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_datetime);
         $stmt->execute();
         $stmt->close();
+        
+        // Include the email sending file
+        
 
         // Redirect to dashboard or confirmation page
         header("Location: dashboard.php?appointment_success=1");
+        
+        echo "<script>alert('sending email');</script>";
+    
+        // Check if user email is set
+        if (isset($_SESSION['user_email'])) {
+            // Send email to user with appointment details
+            $emailSent = sendAppointmentEmail($_SESSION['user_email'], $appointment_date, $appointment_time, $doctor_name);
+            if (!$emailSent) {
+                echo "Failed to send confirmation email. Please check the logs for more details.";
+         
+            }
+        } else {
+            echo "User email is not set in the session.";
+        }
         exit;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -140,3 +159,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 </body>
 </html>
+</create_file>

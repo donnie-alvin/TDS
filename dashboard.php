@@ -3,14 +3,14 @@ session_start();
 include 'db.php'; 
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_email'])) {
     header("Location: login.php");
     exit; // Stop further execution
 }
 
 // Fetch user profile
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT name, email FROM users WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $stmt->bind_result($user_name, $user_email);
@@ -37,7 +37,7 @@ $stmt->close();
 
 // Fetch booked appointments for the user
 $appointments = [];
-$stmt = $conn->prepare("SELECT a.id, a.appointment_date, d.name, d.specialization FROM appointments a JOIN doctors d ON a.doctor_id = d.id WHERE a.user_id = ?");
+$stmt = $conn->prepare("SELECT appointment_id, a.appointment_date, d.name, d.specialization FROM appointments a JOIN doctors d ON a.doctor_id = d.id WHERE a.user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $stmt->bind_result($appointment_id, $appointment_date, $doctor_name, $doctor_specialization);

@@ -17,7 +17,7 @@ if (!isset($_GET['id'])) {
 $appointment_id = $_GET['id'];
 
 // Prepare and execute the deletion query
-$stmt = $conn->prepare("DELETE FROM appointments WHERE id = ? AND user_id = ?");
+$stmt = $conn->prepare("DELETE FROM appointments WHERE appointment_id = ? AND user_id = ?");
 $stmt->bind_param("ii", $appointment_id, $_SESSION['user_id']);
 $stmt->execute();
 

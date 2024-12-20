@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     // Check user credentials
-    $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT user_id, password FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $stmt->store_result();
@@ -18,7 +18,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Verify password
         if (password_verify($password, $hashed_password)) {
-            $_SESSION['user_id'] = $id; 
+            $_SESSION['user_id'] = $id;
+            $_SESSION['user_email'] = $email; 
             header("Location: dashboard.php");
             exit; 
         } else {

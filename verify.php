@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Compare the input code with the stored confirmation code
     if ($input_code === $confirmation_code) {
         // Move user data to the users table
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, confirmation_code) SELECT name, email, password, confirmation_code FROM temporary_users WHERE email = ?");
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password) SELECT name, email, password FROM temporary_users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->close();
