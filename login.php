@@ -58,7 +58,7 @@ $conn->close();
             </div>
             <input type="submit" value="Login" class="login-btn">
         </form>
-        <p>Don't have an account? <a href="register.php">Register here</a></p>
+        <p>Don't have an account? <a href="registration_form.php">Register here</a></p>
     </div>
 </body>
 </html> 
