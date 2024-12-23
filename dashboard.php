@@ -10,10 +10,10 @@ if (!isset($_SESSION['user_email'])) {
 
 // Fetch user profile
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT name, email FROM users WHERE user_id = ?");
+$stmt = $conn->prepare("SELECT name, email, is_admin FROM users WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$stmt->bind_result($user_name, $user_email);
+$stmt->bind_result($user_name, $user_email, $is_admin);
 $stmt->fetch();
 $stmt->close();
 
@@ -107,10 +107,44 @@ $stmt->close();
                         <p><strong>Location:</strong> <?= htmlspecialchars($doctor['location']) ?></p>
                         <p><strong>Hospital:</strong> <?= htmlspecialchars($doctor['hospital']) ?></p>
                         <p><?= htmlspecialchars($doctor['description']) ?></p>
+                        <?php if ($is_admin): ?>
+                            <form action="remove_doctor.php" method="POST">
+                                <input type="hidden" name="doctor_id" value="<?= $doctor['id'] ?>">
+                                <button type="submit">Remove Doctor</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
         </section>
+
+        <?php if ($is_admin): ?>
+        <section>
+            <h2>Add New Doctor</h2>
+            <form action="add_doctor.php" method="POST" enctype="multipart/form-data">
+                <input type="text" name="name" placeholder="Doctor's Name" required>
+                <input type="email" name="email" placeholder="Doctor's Email" required>
+                <input type="password" name="password" placeholder="Doctor's Password" required>
+                <input type="text" name="specialization" placeholder="Specialization" required>
+                <input type="text" name="location" placeholder="Location" required>
+                <input type="text" name="hospital" placeholder="Hospital" required>
+                <textarea name="description" placeholder="Description"></textarea>
+                <input type="file" name="picture" required>
+                <button type="submit">Add Doctor</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Add New User</h2>
+            <form action="add_user.php" method="POST">
+                <input type="text" name="name" placeholder="User's Name" required>
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="email" name="email" placeholder="User's Email" required>
+                <input type="password" name="password" placeholder="User's Password" required>
+                <button type="submit">Add User</button>
+            </form>
+        </section>
+        <?php endif; ?>
 
         <section>
             <h2>FAQs</h2>
@@ -141,4 +175,4 @@ $stmt->close();
         }
     </script>
 </body>
-</html> 
+</html>

@@ -17,11 +17,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->fetch();
         
         // Verify password
-        if (password_verify($password, $hashed_password)) {
-            $_SESSION['user_id'] = $id;
-            $_SESSION['user_email'] = $email; 
-            header("Location: dashboard.php");
-            exit; 
+if (password_verify($password, $hashed_password)) {
+    $_SESSION['user_id'] = $id;
+    $_SESSION['user_email'] = $email; 
+
+    // Fetch user role
+    $stmt = $conn->prepare("SELECT role FROM users WHERE user_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($user_role);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Redirect based on role
+    if ($user_role == 'admin') {
+        header("Location: admin_dashboard.php");
+    } elseif ($user_role == 'doctor') {
+        header("Location: doctor_dashboard.php");
+    } else {
+        header("Location: user_dashboard.php");
+    }
         } else {
             $error_message = "Invalid password.";
         }

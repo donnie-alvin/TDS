@@ -11,7 +11,18 @@ This project is a web-based appointment booking system designed to solve the cha
 - **Doctor Registration and Login**: Doctors can register and log in to the system.
 - **Doctor Dashboard**: Doctors can view and manage their appointments.
 
-## Technologies Used
+## Recent Changes
+- **Admin Dashboard**: Added an admin dashboard for managing doctors and users.
+- **Feedback Functionality**: Implemented feedback functionality for doctors.
+- **User Roles and Statuses**: Updated user roles and statuses.
+
+## Admin Credentials
+- **Username**: admin
+- **Password**: admin123
+
+## Directory Structure
+- `admin_dashboard.php`: Admin dashboard for managing doctors and users.
+- `user_dashboard.php`: User dashboard displaying user profile and appointments.
 - **Front-End Development**: HTML, CSS, and JavaScript for creating a responsive and visually appealing user interface.
 - **Back-End Development**: PHP for server-side logic, handling user authentication, appointment scheduling, and data retrieval.
 - **Local Development Environment**: XAMPP for setting up an Apache server, PHP interpreter, and MySQL database.
@@ -114,7 +125,6 @@ This project is a web-based appointment booking system designed to solve the cha
 ## Contributing
 
 ## License
-
 
 ## Contact
 For any questions or feedback, please contact [your email].
