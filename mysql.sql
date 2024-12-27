@@ -75,6 +75,8 @@ CREATE TABLE appointments (
     user_id INT NOT NULL,
     doctor_id INT NOT NULL,
     appointment_date DATETIME NOT NULL,
+    status ENUM('confirmed', 'cancelled', 'in_consultation', 'completed') DEFAULT 'confirmed',
+    video_session_id VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (doctor_id) REFERENCES doctors(id)
