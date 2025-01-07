@@ -17,7 +17,7 @@ if (!isset($_GET['id'])) {
 $appointment_id = $_GET['id'];
 
 // Fetch appointment details
-$stmt = $conn->prepare("SELECT doctor_id FROM appointments WHERE id = ? AND user_id = ?");
+$stmt = $conn->prepare("SELECT doctor_id FROM appointments WHERE appointment_id = ? AND user_id = ?");
 $stmt->bind_param("ii", $appointment_id, $_SESSION['user_id']);
 $stmt->execute();
 $stmt->bind_result($doctor_id);
@@ -34,6 +34,22 @@ if (!$doctor_id) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $rating = $_POST['rating'];
     $feedback = $_POST['feedback'];
+
+    // Check if table exists, if not create it
+    $tableCheck = $conn->query("SHOW TABLES LIKE 'doctor_ratings'");
+    if ($tableCheck->num_rows == 0) {
+        // Table doesn't exist, create it
+        $conn->query("CREATE TABLE doctor_ratings (
+            rating_id INT PRIMARY KEY AUTO_INCREMENT,
+            doctor_id INT NOT NULL,
+            user_id INT NOT NULL,
+            rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+            feedback TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )");
+    }
 
     // Insert rating into the database
     $stmt = $conn->prepare("INSERT INTO doctor_ratings (doctor_id, user_id, rating, feedback) VALUES (?, ?, ?, ?)");

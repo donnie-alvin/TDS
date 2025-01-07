@@ -35,7 +35,8 @@ CREATE TABLE `appointments` (
   `status` enum('confirmed','cancelled') DEFAULT 'confirmed',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
+ 
+ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user';
 --
 -- Dumping data for table `appointments`
 --
@@ -184,6 +185,14 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `email` (`email`);
 
+CREATE TABLE feedback (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    appointment_id INT,
+    rating INT NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id)
+);
 --
 -- AUTO_INCREMENT for dumped tables
 --
@@ -236,6 +245,18 @@ ALTER TABLE `doctor_availability`
   ADD CONSTRAINT `doctor_availability_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`id`);
 COMMIT;
 
+UPDATE users SET role = 'user' WHERE role IS NULL;
+
+CREATE TABLE doctor_ratings (
+    rating_id INT PRIMARY KEY AUTO_INCREMENT,
+    doctor_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    feedback TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

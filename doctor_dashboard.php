@@ -20,7 +20,15 @@ $stmt->close();
 
 // Fetch appointments for the doctor
 $appointments = [];
-$stmt = $conn->prepare("SELECT a.id, a.appointment_date, a.status, u.name AS user_name, u.email FROM appointments a JOIN users u ON a.user_id = u.id WHERE a.doctor_id = ?");
+$stmt = $conn->prepare("SELECT 
+    appointments.appointment_id, 
+    appointments.appointment_date, 
+    appointments.status, 
+    users.name AS user_name, 
+    users.email 
+    FROM appointments 
+    JOIN users ON appointments.user_id = users.user_id 
+    WHERE appointments.doctor_id = ?");
 $stmt->bind_param("i", $doctor_id);
 $stmt->execute();
 $stmt->bind_result($appointment_id, $appointment_date, $status, $user_name, $user_email);

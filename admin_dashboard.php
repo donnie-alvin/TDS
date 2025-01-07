@@ -1,3 +1,39 @@
+<?php
+session_start();
+include 'db.php'; // Make sure this path is correct
+
+// Check if user is logged in and is admin
+/*if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit();
+}*/
+
+// Fetch statistics
+// User Statistics
+$result = $conn->query("SELECT COUNT(*) as count FROM users");
+$totalUsers = $result->fetch_assoc()['count'];
+
+// Doctor Statistics
+$result = $conn->query("SELECT COUNT(*) as count FROM doctors");
+$totalDoctors = $result->fetch_assoc()['count'];
+$activeDoctors = $totalDoctors; // Or add an active status column to doctors table
+
+// Appointment Statistics
+$result = $conn->query("SELECT COUNT(*) as count FROM appointments");
+$totalAppointments = $result->fetch_assoc()['count'];
+
+$result = $conn->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'cancelled'");
+$totalCancellations = $result->fetch_assoc()['count'];
+
+// User role distribution
+$roleQuery = $conn->query("SELECT role, COUNT(*) as count FROM users GROUP BY role");
+$userRoles = [];
+while ($row = $roleQuery->fetch_assoc()) {
+    $userRoles[$row['role']] = $row['count'];
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +46,53 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stats-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .rating-distribution {
+            margin-top: 20px;
+        }
+
+        .doctor-stats {
+            padding: 20px;
+        }
+
+        .doctor-stats p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        canvas {
+            margin-top: 20px;
+            max-height: 300px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -36,87 +119,50 @@
     <div class="container">
         <h1 class="mt-4">Admin Dashboard</h1>
 
-        <!-- User Statistics -->
-        <h2>User Statistics</h2>
-        <div id="userStats" class="mb-4">
-            <?php
-            include 'db.php'; // Ensure this file contains the database connection code
-
-            // Total users
-            $totalUsers = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
-            // Users by role
-            $usersByRole = $conn->query("SELECT role, COUNT(*) as count FROM users GROUP BY role");
-            echo "<p>Total Users: $totalUsers</p>";
-            echo "<ul>";
-            while ($row = $usersByRole->fetch_assoc()) {
-                echo "<li>" . htmlspecialchars($row['role']) . ": " . htmlspecialchars($row['count']) . "</li>";
-            }
-            echo "</ul>";
-            ?>
+        <div class="stats-container">
+            <div class="stats-card">
+                <h2>User Statistics</h2>
+                <p>Total Users: <?php echo $totalUsers; ?></p>
+                <canvas id="userRoleChart"></canvas>
+            </div>
+            
+            <div class="stats-card">
+                <h2>Doctor Statistics</h2>
+                <div class="doctor-stats">
+                    <p>Total Doctors: <?php echo $totalDoctors; ?></p>
+                    <p>Active Doctors: <?php echo $activeDoctors; ?></p>
+                    <canvas id="doctorStatsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="stats-card">
+                <h2>Appointment Statistics</h2>
+                <p>Total Appointments: <?php echo $totalAppointments; ?></p>
+                <p>Total Cancellations: <?php echo $totalCancellations; ?></p>
+                <canvas id="appointmentChart"></canvas>
+            </div>
         </div>
 
-        <!-- Doctor Statistics -->
-        <h2>Doctor Statistics</h2>
-        <div id="doctorStats" class="mb-4">
-            <?php
-            // Total doctors
-            $totalDoctors = $conn->query("SELECT COUNT(*) as count FROM doctors WHERE role = 'doctor'")->fetch_assoc()['count'];
-            // Active doctors
-            $activeDoctors = $conn->query("SELECT COUNT(*) as count FROM doctors WHERE role = 'doctor'")->fetch_assoc()['count'];
-            echo "<p>Total Doctors: $totalDoctors</p>";
-            echo "<p>Active Doctors: $activeDoctors</p>";
-            ?>
-        </div>
-
-        <!-- Appointment Statistics -->
-        <h2>Appointment Statistics</h2>
-        <div id="appointmentStats" class="mb-4">
-            <?php
-            // Total appointments
-            $totalAppointments = $conn->query("SELECT COUNT(*) as count FROM appointments")->fetch_assoc()['count'];
-            // Cancellations
-            $totalCancellations = $conn->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'cancelled'")->fetch_assoc()['count'];
-            echo "<p>Total Appointments: $totalAppointments</p>";
-            echo "<p>Total Cancellations: $totalCancellations</p>";
-            ?>
-        </div>
-
-        <!-- Feedback and Ratings -->
-        <h2>Feedback and Ratings</h2>
-        <div id="feedbackStats" class="mb-4">
-            <?php
-            // Average rating
-            $averageRating = $conn->query("SELECT AVG(rating) as avg FROM feedback")->fetch_assoc()['avg'];
-            echo "<p>Average Doctor Rating: " . round($averageRating, 2) . "</p>";
-            ?>
-        </div>
-
-        <!-- Charts for visual representation -->
-        <h2>Charts</h2>
-        <canvas id="userChart" width="400" height="200"></canvas>
-        <script>
-            var ctx = document.getElementById('userChart').getContext('2d');
-            var userChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Total Users', 'Total Doctors'],
-                    datasets: [{
-                        label: 'User Statistics',
-                        data: [<?php echo $totalUsers; ?>, <?php echo $totalDoctors; ?>],
-                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
-                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+        <div class="chart-container">
+            <div class="chart-card">
+                <h2>Feedback and Ratings</h2>
+                <canvas id="ratingChart"></canvas>
+                <div class="rating-distribution">
+                    <?php
+                    $ratingResult = $conn->query("SELECT AVG(rating) as avg FROM doctor_ratings");
+                    if ($ratingResult) {
+                        $averageRating = $ratingResult->fetch_assoc()['avg'];
+                        echo "<h4>Average Rating: " . ($averageRating ? round($averageRating, 2) : 'No ratings yet') . " / 5</h4>";
+                        
+                        $ratingDistribution = $conn->query("SELECT rating, COUNT(*) as count FROM doctor_ratings GROUP BY rating ORDER BY rating");
+                        if ($ratingDistribution && $ratingDistribution->num_rows > 0) {
+                            echo "<canvas id='ratingDistributionChart'></canvas>";
                         }
                     }
-                }
-            });
-        </script>
+                    ?>
+                </div>
+            </div>
+        </div>
 
         <!-- View All Users -->
         <h2>View All Users</h2>
@@ -132,8 +178,8 @@
             </thead>
             <tbody>
                 <?php
-                // Fetch all users
-                $result = $conn->query("SELECT user_id, username, email, role FROM users WHERE role = 'client'");
+                // Fetch all users - removed the role filter
+                $result = $conn->query("SELECT user_id, username, email, COALESCE(role, 'user') as role FROM users");
 
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
@@ -169,7 +215,7 @@
             <tbody>
                 <?php
                 // Fetch all doctors
-                $result = $conn->query("SELECT id, name, email FROM doctors WHERE role = 'doctor'");
+                $result = $conn->query("SELECT id, name, email FROM doctors");
 
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
@@ -196,6 +242,127 @@
             window.location.href = "logout.php"; // Redirect to logout page
         }
     }
+    </script>
+
+    <script>
+    // User Role Chart
+    const userRoleData = {
+        labels: ['Users', 'Doctors', 'Admins'],
+        datasets: [{
+            data: [<?php echo $totalUsers; ?>, <?php echo $totalDoctors; ?>, 1],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+        }]
+    };
+
+    new Chart(document.getElementById('userRoleChart'), {
+        type: 'doughnut',
+        data: userRoleData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Appointment Status Chart
+    const appointmentData = {
+        labels: ['Completed', 'Cancelled'],
+        datasets: [{
+            data: [
+                <?php echo $totalAppointments - $totalCancellations; ?>,
+                <?php echo $totalCancellations; ?>
+            ],
+            backgroundColor: ['#4BC0C0', '#FF6384']
+        }]
+    };
+
+    new Chart(document.getElementById('appointmentChart'), {
+        type: 'pie',
+        data: appointmentData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Rating Distribution Chart
+    <?php
+    $ratings = array_fill(1, 5, 0); // Initialize array with zeros for ratings 1-5
+    $ratingQuery = $conn->query("SELECT rating, COUNT(*) as count FROM doctor_ratings GROUP BY rating");
+    if ($ratingQuery) {
+        while ($row = $ratingQuery->fetch_assoc()) {
+            $ratings[$row['rating']] = $row['count'];
+        }
+    }
+    ?>
+
+    new Chart(document.getElementById('ratingDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+            datasets: [{
+                label: 'Number of Ratings',
+                data: [<?php echo implode(',', $ratings); ?>],
+                backgroundColor: '#36A2EB'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Create a bar chart for doctor statistics
+    new Chart(document.getElementById('doctorStatsChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Total Doctors', 'Active Doctors'],
+            datasets: [{
+                label: 'Number of Doctors',
+                data: [<?php echo $totalDoctors; ?>, <?php echo $activeDoctors; ?>],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',  // Blue for Total Doctors
+                    'rgba(75, 192, 192, 0.8)'   // Green for Active Doctors
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Doctor Statistics Overview'
+                }
+            }
+        }
+    });
     </script>
 </body>
 </html>
