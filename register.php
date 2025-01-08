@@ -24,8 +24,8 @@ function sendConfirmationEmail($email, $name, $code) {
         // Content
         $mail->isHTML(true);                                     // Set email format to HTML
         $mail->Subject = 'Email Confirmation';
-        $mail->Body    = "Hello $name,<br><br>Please confirm your email by clicking the link below:<br>
-                          <a href='http://yourdomain.com/confirm.php?code=$code'>Confirm Email</a><br><br>Thank you!";
+        $mail->Body    = "Hello $name,<br><br>Please confirm your email by entering the code below:<br>
+                          <a href='s'>$code</a><br><br>Thank you!";
         
         if (!$mail->send()) {
             error_log("Email could not be sent. Mailer Error: {$mail->ErrorInfo}");

@@ -52,8 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $appointment_datetime = $appointment_date . ' ' . $appointment_time; // Create a variable for the concatenated date and time
 
     // Check if the selected time slot is available
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND appointment_date = ?");
-    $stmt->bind_param("is", $doctor_id, $appointment_datetime);
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND appointment_date = ? AND user_id = ?");
+    $stmt->bind_param("isi", $doctor_id, $appointment_datetime, $user_id);
     $stmt->execute();
     $stmt->bind_result($count);
     $stmt->fetch();
@@ -63,7 +63,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Slot is already booked
         echo "<script>alert('The selected time slot is already booked. Please choose another time.');</script>";
     } else {
-        // Save the appointment in the database
+        // Debugging: Log the values being inserted
+        error_log("Inserting appointment: User ID: $user_id, Doctor ID: $doctor_id, Appointment Date: $appointment_datetime");
         $user_id = $_SESSION['user_id']; // Get the logged-in user's ID
         $stmt = $conn->prepare("INSERT INTO appointments (user_id, doctor_id, appointment_date) VALUES (?, ?, ?)");
         $stmt->bind_param("iis", $user_id, $doctor_id, $appointment_datetime);
